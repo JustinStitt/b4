@@ -26,9 +26,10 @@ import gzip
 import io
 import tarfile
 
-from typing import Optional, Tuple, List, Union
 from email import utils
+from typing import Optional, Tuple, List, Union
 from string import Template
+from pathlib import Path
 
 try:
     import patatt
@@ -2159,6 +2160,30 @@ def set_prefixes(prefixes: list) -> None:
         logger.info('No changes to extra prefixes.')
 
 
+def checkpatch() -> int:
+    """
+    Invoke ./scripts/checkpatch.pl if it is available.
+    Only consider the current working directory.
+    Return True if patch is all good, False otherwise.
+    """
+    from subprocess import run
+
+    checkpath_pl_path = Path("./scripts/checkpatch.pl")
+    if not checkpath_pl_path.exists():
+        logger.critical(f'CRITICAL: no {checkpath_pl_path} found.')
+        logger.critical(f'          Navigate to Linux source tree.')
+        sys.exit(1)
+
+    start = get_series_start()
+    end = 'HEAD'
+    cover_commit = find_cover_commit()
+    patches = b4.git_range_to_patches(None, start, end, ignore_commits={cover_commit})
+    command = ['./scripts/checkpatch.pl', '--git'] + [x[0] for x in patches]
+
+    result = run(command)
+
+    return result.returncode
+
 def cmd_prep(cmdargs: argparse.Namespace) -> None:
     check_can_gfr()
     status = b4.git_get_repo_status()
@@ -2166,6 +2191,11 @@ def cmd_prep(cmdargs: argparse.Namespace) -> None:
         logger.critical('CRITICAL: Repository contains uncommitted changes.')
         logger.critical('          Stash or commit them first.')
         sys.exit(1)
+
+    if cmdargs.check:
+        checkpatch_return_code = checkpatch()
+        logger.info(f"checkpatch return code: {checkpatch_return_code}")
+        return # nothing else needs to happen after a checkpatch call
 
     if cmdargs.reroll:
         msgid = cmdargs.reroll

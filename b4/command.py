@@ -281,6 +281,12 @@ def setup_parser() -> argparse.ArgumentParser:
                        help='Show series info in a format that can be passed to other commands.')
     spp_g.add_argument('--cleanup', metavar='BRANCHNAME', nargs='?', const='_show',
                        help='Archive and remove a prep-tracked branch and all its sent/ tags')
+    spp_g.add_argument(
+        "--check",
+        action="store_true",
+        default=False,
+        help="Run ./scripts/checkpatch.pl on your entire patch series",
+    )
 
     ag_prepn = sp_prep.add_argument_group('Create new branch', 'Create a new branch for working on patch series')
     ag_prepn.add_argument('-n', '--new', dest='new_series_name',
