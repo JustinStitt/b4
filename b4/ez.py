@@ -1558,6 +1558,11 @@ def cmd_send(cmdargs: argparse.Namespace) -> None:
         if not cl_msgid:
             cl_msgid = b4.LoreMessage.get_clean_msgid(msg)
 
+        # markdown format lorelink for each patch in series
+        lore_link = config.get('linkmask') % b4.LoreMessage.get_clean_msgid(msg)
+        logger.info(f"[{msg.get('subject')}]({lore_link})")
+
+
         myto = list(allto)
         mycc = list(allcc)
         if msg['To']:
