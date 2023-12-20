@@ -3433,7 +3433,7 @@ def get_smtp(dryrun: bool = False) -> Tuple[Union[smtplib.SMTP, smtplib.SMTP_SSL
             else:
                 envpair = email.utils.parseaddr(env_sender)
             if envpair[1]:
-                smtp += ['-f', envpair[1]]
+                smtp += ['-f', f"{envpair[0]} <{envpair[1]}>"]
         logger.debug('sendmail command: %s', ' '.join(smtp))
         return smtp, fromaddr
 
